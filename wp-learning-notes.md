@@ -15,7 +15,8 @@
 8. [Viewing All Content](#viewing-all-content)
 9. [Database](#database)
 10. [Project Folder Structure](#project-folder-structure-local-by-flywheel)
-11. [Oxygen Plugin](#oxygen-plugin)
+11. [GitHub SSH Setup](#github-ssh-setup)
+12. [Oxygen Plugin](#oxygen-plugin)
 
 ---
 
@@ -273,6 +274,8 @@ lsof -i -P | grep mysqld
 # Look for: TCP localhost:XXXXX (LISTEN) — that number is the port
 ```
 
+> 💡 Check for the SQL port everytime starting the site using Step 1. This is to ensure the connection established without any error. 
+
 **Step 2 — grant TCP access (MySQL 8 syntax):**
 ```bash
 wp db cli
@@ -337,6 +340,33 @@ Laravel analogue:
 - `wp-content/` ≈ `app/` + `resources/`
 - `wp-config.php` ≈ `.env` + `config/database.php`
 - `conf/` ≈ Docker/Sail config
+
+---
+
+## GitHub SSH Setup
+
+SSH lets you push/pull without typing password each time.
+
+### First-time connection prompt
+
+When connecting to GitHub for first time, terminal shows:
+```
+The authenticity of host 'github.com' can't be established.
+ED25519 key fingerprint is: SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU
+Are you sure you want to continue connecting (yes/no)?
+```
+
+**Verify before typing yes** — check fingerprint matches GitHub's official list:
+
+| Algorithm | Official GitHub Fingerprint |
+|---|---|
+| ED25519 | `SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU` |
+| RSA | `SHA256:uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s` |
+| ECDSA | `SHA256:p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM` |
+
+If matches → type `yes`. If different → do NOT connect, possible MITM attack.
+
+> Note: SSH key fingerprint in GitHub settings (under Authentication keys) is your machine's key — different from GitHub's server fingerprint above.
 
 ---
 
