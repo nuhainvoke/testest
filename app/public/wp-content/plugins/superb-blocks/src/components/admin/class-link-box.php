@@ -1,0 +1,54 @@
+<?php
+
+namespace SuperbAddons\Components\Admin;
+
+defined('ABSPATH') || exit();
+
+class LinkBox
+{
+    private $id = false;
+    private $title = false;
+    private $description = false;
+    private $link = false;
+    private $cta = false;
+    private $icon = false;
+    private $pro = false;
+    private $classes = false;
+    private $same_window = false;
+
+    public function __construct($options)
+    {
+        $this->id = isset($options['id']) ? $options['id'] : false;
+        $this->title = isset($options['title']) ? $options['title'] : false;
+        $this->description = isset($options['description']) ? $options['description'] : false;
+        $this->link = isset($options['link']) ? $options['link'] : false;
+        $this->cta = isset($options['cta']) ? $options['cta'] : false;
+        $this->icon = isset($options['icon']) ? $options['icon'] : false;
+        $this->pro = isset($options['pro']) ? $options['pro'] : false;
+        $this->classes = isset($options['classes']) ? $options['classes'] : false;
+        $this->same_window = isset($options['same_window']) ? $options['same_window'] : false;
+
+        $this->Render();
+    }
+
+    private function Render()
+    {
+?>
+        <div class="superbaddons-admindashboard-content-box <?php echo $this->classes ? esc_attr($this->classes) : ''; ?>" <?php if ($this->id) : ?>id="<?php echo esc_attr($this->id); ?>" <?php endif; ?>>
+            <div class="superbaddons-admindashboard-link-box-inner">
+                <?php if ($this->pro) : ?>
+                    <span class="superbaddons-element-pro-badge"><?php echo esc_html__("Premium", "superb-blocks"); ?></span>
+                <?php endif; ?>
+                <img class="superbaddons-admindashboard-content-icon superbaddons-element-mb1" src="<?php echo esc_url(SUPERBADDONS_ASSETS_PATH . '/img/' . $this->icon); ?>" />
+                <h4 class="superbaddons-element-text-md superbaddons-element-text-800 superbaddons-element-text-dark superbaddons-element-m0"><?php echo esc_html($this->title); ?> </h4>
+                <p class="superbaddons-element-text-xxs superbaddons-element-text-gray">
+                    <?php echo esc_html($this->description); ?>
+                </p>
+                <?php if ($this->cta && $this->link) : ?>
+                    <a <?php echo !$this->same_window ? 'target="_blank"' : ''; ?> class="<?php echo $this->pro ? 'superbaddons-element-button-pro' : 'superbaddons-element-colorlink'; ?> superbaddons-element-text-xs" href="<?php echo esc_url($this->link); ?>"><?php echo esc_html($this->cta); ?></a>
+                <?php endif; ?>
+            </div>
+        </div>
+<?php
+    }
+}
