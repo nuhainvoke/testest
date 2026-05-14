@@ -1,0 +1,22 @@
+# Logs
+logs/
+
+# WordPress core (don't version control this)
+app/public/wp-admin/
+app/public/wp-includes/
+
+# Uploads (media files, too large for git)
+app/public/wp-content/uploads/
+
+# Database dumps
+app/sql/
+
+# Local by Flywheel config
+conf/
+
+# WordPress config (contains DB credentials)
+app/public/wp-config.php
+
+# OS files
+.DS_Store
+Thumbs.db
