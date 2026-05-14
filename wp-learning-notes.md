@@ -17,6 +17,12 @@
 10. [Project Folder Structure](#project-folder-structure-local-by-flywheel)
 11. [GitHub SSH Setup](#github-ssh-setup)
 12. [Oxygen Plugin](#oxygen-plugin)
+13. [Custom Post Types (CPT)](#custom-post-types-cpt)
+14. [ACF (Advanced Custom Fields)](#acf-advanced-custom-fields)
+15. [Template Hierarchy](#template-hierarchy)
+16. [WP_Query](#wp_query)
+17. [Child Theme Gotcha — Grandchild Not Supported](#child-theme-gotcha--grandchild-not-supported)
+18. [.gitignore for WordPress](#gitignore-for-wordpress)
 
 ---
 
@@ -404,6 +410,174 @@ Visual site builder — team uses this instead of Gutenberg/Elementor.
 **vs Elementor:**
 - Elementor = beginner-friendly, more bloat
 - Oxygen = dev-friendly, cleaner output, more control
+
+---
+
+## Custom Post Types (CPT)
+
+Register in `functions.php` — creates new content type beyond default Posts/Pages.
+
+```php
+add_action('init', function() {
+    register_post_type('service', [
+        'label'        => 'Services',
+        'public'       => true,
+        'show_in_menu' => true,
+        'supports'     => ['title', 'editor', 'thumbnail'],
+        'menu_icon'    => 'dashicons-hammer',
+        'has_archive'  => true,
+        'rewrite'      => ['slug' => 'services'],
+    ]);
+});
+```
+
+**`supports` options:**
+
+| Value | Adds |
+|---|---|
+| `title` | Post title field |
+| `editor` | Content block |
+| `thumbnail` | Featured image |
+| `excerpt` | Short description |
+| `custom-fields` | Raw meta box |
+
+Laravel analogue: `register_post_type` ≈ new Eloquent model — except WP stores everything in `wp_posts`, differentiated by `post_type` column.
+
+---
+
+## ACF (Advanced Custom Fields)
+
+Adds structured custom fields to any CPT. Data stored in `wp_postmeta`.
+
+### Setup
+
+1. Plugins → Add New → search "Advanced Custom Fields" → Install → Activate
+2. Sidebar → **ACF** → **Field Groups** → **Add New**
+3. Add fields (Label, Field Name, Field Type)
+4. Set Location Rules → `Post Type` `is equal to` `{your-cpt}`
+5. Publish
+
+### Usage in templates
+
+```php
+get_field('field_name');        // returns value
+the_field('field_name');        // echoes value
+echo esc_html(get_field('field_name')); // safe output
+```
+
+---
+
+## Template Hierarchy
+
+WP picks template file in order — most specific wins.
+
+| URL | WP looks for |
+|---|---|
+| `/services/website-design/` | `single-service.php` → `single.php` → `index.php` |
+| `/services/` | `archive-service.php` → `archive.php` → `index.php` |
+| `/` | `front-page.php` → `home.php` → `index.php` |
+
+Create `single-{post_type}.php` and `archive-{post_type}.php` in child theme to override.
+
+### single-service.php pattern
+
+```php
+<?php get_header(); ?>
+<?php while (have_posts()) : the_post(); ?>
+    <h1><?php the_title(); ?></h1>
+    <p><?php echo esc_html(get_field('service_price')); ?></p>
+    <?php the_content(); ?>
+<?php endwhile; ?>
+<?php get_footer(); ?>
+```
+
+---
+
+## WP_Query
+
+Fetch any content programmatically. Laravel analogue: Eloquent query builder (but uglier).
+
+```php
+$services = new WP_Query([
+    'post_type'      => 'service',
+    'posts_per_page' => -1,       // -1 = all
+    'post_status'    => 'publish',
+]);
+
+if ($services->have_posts()) :
+    while ($services->have_posts()) : $services->the_post();
+        the_title();
+        echo get_field('service_price');
+    endwhile;
+    wp_reset_postdata(); // always reset after custom WP_Query
+endif;
+```
+
+**`wp_reset_postdata()`** — must call after loop ends. Resets global `$post` back to current page post.
+
+---
+
+## Child Theme Gotcha — Grandchild Not Supported
+
+WP does not support grandchild themes. `Template:` must point to the root parent, not another child theme.
+
+**Check first** — if the parent theme has `Template:` in its own `style.css`, it is itself a child theme.
+
+```bash
+grep "Template:" wp-content/themes/{theme-name}/style.css
+```
+
+If found → set `Template:` in your child to the grandparent folder name instead.
+
+---
+
+## .gitignore for WordPress
+
+Do not track WP core, logs, uploads, or credentials in git.
+
+```gitignore
+# Logs
+logs/
+
+# WordPress core
+app/public/wp-admin/
+app/public/wp-includes/
+
+# Uploads
+app/public/wp-content/uploads/
+
+# DB dump
+app/sql/
+
+# Local config
+conf/
+
+# Credentials
+app/public/wp-config.php
+
+# OS
+.DS_Store
+```
+
+### Untrack already-committed files
+
+If files were pushed before `.gitignore` existed:
+
+```bash
+git rm -r --cached logs/
+git rm -r --cached app/public/wp-admin/
+git rm -r --cached app/public/wp-includes/
+git rm -r --cached app/public/wp-content/uploads/
+git rm -r --cached app/sql/
+git rm -r --cached conf/
+git rm -r --cached app/public/wp-config.php
+
+git add .gitignore
+git commit -m "chore: add .gitignore, untrack logs and WP core files"
+git push
+```
+
+`--cached` = removes from git tracking only. Local files are not deleted.
 
 ---
 
