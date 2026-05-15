@@ -23,6 +23,7 @@
 16. [WP_Query](#wp_query)
 17. [Child Theme Gotcha — Grandchild Not Supported](#child-theme-gotcha--grandchild-not-supported)
 18. [.gitignore for WordPress](#gitignore-for-wordpress)
+19. [Dev vs Client Workflow](#dev-vs-client-workflow)
 
 ---
 
@@ -533,7 +534,7 @@ If found → set `Template:` in your child to the grandparent folder name instea
 
 ## .gitignore for WordPress
 
-Do not track WP core, logs, uploads, or credentials in git.
+> ⚠️ Do not track WP core, logs, uploads, or credentials in git.
 
 ```gitignore
 # Logs
@@ -578,6 +579,50 @@ git push
 ```
 
 `--cached` = removes from git tracking only. Local files are not deleted.
+
+---
+
+## Dev vs Client Workflow
+
+Two separate worlds. Never overlap.
+
+### Who owns what
+
+| Layer | Owner | Where it lives |
+|---|---|---|
+| Theme files (PHP/CSS/JS) | Dev | Git + server files |
+| CPT structure, ACF field definitions | Dev | Git (registered in code) |
+| ACF field *values*, post content | Client | Database (`wp_postmeta`) |
+| Media/uploads | Client | Server (`/uploads/`) |
+| Page builder layouts (Oxygen/Elementor) | Dev or client | Database (`wp_posts`) |
+
+### How it works
+
+Dev builds structure → Client fills content.
+
+Example with Services CPT:
+- Dev registers `service` CPT + ACF fields `service_price`, `service_tagline` → pushed to Git
+- Client logs into wp-admin → fills in actual price, tagline values → saved to DB, not Git
+- Dev updates template design later → pushes code → frontend updates automatically
+
+Client never needs GitHub access. Dev rarely touches live DB.
+
+### Code vs Content separation
+
+```
+Code  (PHP/CSS/JS)  →  Git  →  GitHub  →  server (pull)
+Content (posts, ACF values, media)  →  DB  →  stays on server (never in Git)
+```
+
+### Page builder saves to DB, not files
+
+When client edits in Oxygen or Elementor → changes saved as serialized data in `wp_posts` → PHP template files untouched → Git sees nothing.
+
+```
+Client edits in Oxygen  →  DB changes  →  Git sees nothing
+```
+
+**Gotcha:** Oxygen and Elementor bypass your `single-{post_type}.php` templates. They have their own template system. If client uses Oxygen to design a page, your PHP template becomes irrelevant — Oxygen's DB data controls the output instead.
 
 ---
 
